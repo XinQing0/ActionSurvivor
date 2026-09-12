@@ -18,3 +18,11 @@ Desktop.ini
 build/
 dist/
 
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Coverage and test output
+coverage/
+test-results/

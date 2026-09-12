@@ -1,0 +1,22 @@
+#!/bin/sh
+
+branch=$(git symbolic-ref --quiet --short HEAD 2>/dev/null)
+
+if [ -z "$branch" ]; then
+  echo "ERROR: Commits are not allowed in detached HEAD state." >&2
+  echo "Create a feature branch: git switch -c feature/<short-description>" >&2
+  exit 1
+fi
+
+case "$branch" in
+  feature/*)
+    exit 0
+    ;;
+  *)
+    echo "ERROR: Commits are allowed only on feature/* branches." >&2
+    echo "Current branch: $branch" >&2
+    echo "Create a feature branch: git switch -c feature/<short-description>" >&2
+    exit 1
+    ;;
+esac
+
