@@ -1,0 +1,20 @@
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editors and IDEs
+.idea/
+.vscode/
+*.user
+*.suo
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+
+# Builds
+build/
+dist/
+
