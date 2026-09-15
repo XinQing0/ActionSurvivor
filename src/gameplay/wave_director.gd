@@ -41,7 +41,7 @@ func _process(delta: float) -> void:
     var wave: Dictionary = _waves[current_wave_index]
     _spawn_timer = float(wave.get("spawn_interval_seconds", 1.0))
     var available_slots := int(wave.get("max_alive", 100)) - get_alive_enemy_count()
-    var batch_size := min(int(wave.get("batch_size", 1)), max(available_slots, 0))
+    var batch_size: int = mini(int(wave.get("batch_size", 1)), maxi(available_slots, 0))
     for index in range(batch_size):
         _spawn_enemy(wave.get("type_weights", {}), index)
 
