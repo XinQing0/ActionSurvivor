@@ -1,0 +1,15 @@
+{
+  "random_seed": 20260915,
+  "spawn_margin": 36,
+  "minimum_player_distance": 220,
+  "enemy_types": {
+    "vermin": { "speed": 52, "health": 10, "radius": 8, "color": "9b6b55" },
+    "bat": { "speed": 88, "health": 7, "radius": 7, "color": "9a78d1" },
+    "golem": { "speed": 34, "health": 42, "radius": 15, "color": "a88f65" }
+  },
+  "waves": [
+    { "start_time_seconds": 0, "spawn_interval_seconds": 1.6, "batch_size": 2, "max_alive": 28, "type_weights": { "vermin": 1.0 } },
+    { "start_time_seconds": 25, "spawn_interval_seconds": 1.2, "batch_size": 3, "max_alive": 48, "type_weights": { "vermin": 0.75, "bat": 0.25 } },
+    { "start_time_seconds": 55, "spawn_interval_seconds": 0.85, "batch_size": 4, "max_alive": 72, "type_weights": { "vermin": 0.58, "bat": 0.27, "golem": 0.15 } }
+  ]
+}

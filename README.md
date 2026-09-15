@@ -4,7 +4,9 @@ An action-survival game inspired by horde shooters, arena combat, and roguelite 
 
 ## Project status
 
-The project is in pre-production. The engine and gameplay architecture have not been selected yet.
+The project is in pre-production. Godot 4 with GDScript has been selected for the first 2D prototype. The current prototype focuses on data-driven enemy spawning and wave pacing using programmatically drawn placeholder visuals.
+
+See [the engine decision](docs/engine-decision-godot.md) and [the wave prototype guide](docs/wave-prototype.md).
 
 ## Repository layout
 
@@ -31,3 +33,15 @@ Direct work on `main` is prohibited.
 5. Review the changes, then merge the feature branch into `main`.
 
 Run `powershell -ExecutionPolicy Bypass -File tools/setup-git-hooks.ps1` once after cloning. See [CONTRIBUTING.md](CONTRIBUTING.md) for the complete rules.
+
+## Run the wave prototype
+
+1. Install the standard Godot 4 build (the .NET build is not required).
+2. Open `project.godot` in Godot, or run `godot --path .` from the repository root.
+3. Move with WASD or the arrow keys. The prototype runs an accelerated 90-second wave demonstration.
+
+Godot is not currently available on this development machine, so the repository includes a static configuration check that can run without it:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools/validate-wave-config.ps1
+```

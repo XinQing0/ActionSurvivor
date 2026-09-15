@@ -17,6 +17,7 @@ Desktop.ini
 # Builds
 build/
 dist/
+.godot/
 
 # Local environment and secrets
 .env
