@@ -40,7 +40,7 @@ Run `powershell -ExecutionPolicy Bypass -File tools/setup-git-hooks.ps1` once af
 2. Open `project.godot` in Godot, or run `godot --path .` from the repository root.
 3. Move with WASD or the arrow keys. The prototype runs an accelerated 90-second wave demonstration.
 
-Godot is not currently available on this development machine, so the repository includes a static configuration check that can run without it:
+For environments where Godot is unavailable or not on `PATH`, the repository includes a static configuration check that can run without the engine:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File tools/validate-wave-config.ps1
