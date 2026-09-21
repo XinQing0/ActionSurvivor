@@ -2,9 +2,10 @@
 
 ## Status
 
-Proposed. Supersedes the implicit "2D top-down placeholder" assumption in
-[the wave prototype guide](wave-prototype.md). The
-[Godot engine decision](engine-decision-godot.md) remains valid.
+Accepted. Milestone 1 is implemented; see
+[the prototype guide](wave-prototype.md), which replaces the earlier 2D
+top-down prototype. The [Godot engine decision](engine-decision-godot.md)
+remains valid.
 
 ## Reference
 
@@ -111,7 +112,7 @@ Add:
 
 ## Milestones
 
-1. **3D vertical slice of the existing loop.** Port the wave director to 3D,
+1. ~~**3D vertical slice of the existing loop.**~~ Done. Port the wave director to 3D,
    placeholder meshes, camera rig, player health, contact damage, death. No
    spells yet beyond one auto-firing projectile.
 2. **Spell system and draft.** Three to five spells with real differences in

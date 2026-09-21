@@ -4,4 +4,5 @@ Store version-controlled project, gameplay, balancing, input, and environment-in
 
 - `waves_demo.json` contains the accelerated 90-second development demonstration.
 - `waves_10min.json` contains the intended ten-minute first-run pacing.
+- `player_loadout.json` contains player stats and the starting spell list.
 

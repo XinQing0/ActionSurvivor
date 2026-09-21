@@ -5,24 +5,32 @@ const Enemy := preload("res://src/gameplay/enemy.gd")
 var elapsed_time := 0.0
 var current_wave_index := 0
 var total_spawned := 0
+var total_killed := 0
 var is_ready := false
+## The clock and wave schedule advance while the run is active. Spawning is a
+## separate switch so it can be stopped without freezing the run clock.
+var run_active := true
+var spawning_enabled := true
 
-var _arena_bounds: Rect2
-var _player: Node2D
+var arena_radius := 14.0
+var run_duration_seconds := 90.0
+
+var _player: Node3D
 var _enemy_types: Dictionary
 var _waves: Array
-var _spawn_margin := 36.0
-var _minimum_player_distance := 220.0
+var _spawn_margin := 2.0
+var _minimum_player_distance := 5.5
 var _spawn_timer := 0.0
 var _random := RandomNumberGenerator.new()
 
 
-func configure(config_path: String, arena_bounds: Rect2, player: Node2D) -> void:
-    _arena_bounds = arena_bounds
+func configure(config_path: String, player: Node3D) -> void:
     _player = player
     var config := _load_config(config_path)
     _enemy_types = config.get("enemy_types", {})
     _waves = config.get("waves", [])
+    arena_radius = float(config.get("arena_radius", arena_radius))
+    run_duration_seconds = float(config.get("run_duration_seconds", run_duration_seconds))
     _spawn_margin = float(config.get("spawn_margin", _spawn_margin))
     _minimum_player_distance = float(config.get("minimum_player_distance", _minimum_player_distance))
     _random.seed = int(config.get("random_seed", 20260915))
@@ -30,10 +38,12 @@ func configure(config_path: String, arena_bounds: Rect2, player: Node2D) -> void
 
 
 func _process(delta: float) -> void:
-    if not is_ready:
+    if not is_ready or not run_active:
         return
     elapsed_time += delta
     _update_wave_index()
+    if not spawning_enabled:
+        return
     _spawn_timer -= delta
     if _spawn_timer > 0.0:
         return
@@ -44,6 +54,23 @@ func _process(delta: float) -> void:
     var batch_size: int = mini(int(wave.get("batch_size", 1)), maxi(available_slots, 0))
     for index in range(batch_size):
         _spawn_enemy(wave.get("type_weights", {}), index)
+
+
+func get_current_max_alive() -> int:
+    if not is_ready:
+        return 0
+    return int(_waves[current_wave_index].get("max_alive", 1))
+
+
+func get_alive_enemy_count() -> int:
+    return get_tree().get_nodes_in_group("enemies").size()
+
+
+func get_crowd_density() -> float:
+    var cap := get_current_max_alive()
+    if cap <= 0:
+        return 0.0
+    return clampf(float(get_alive_enemy_count()) / float(cap), 0.0, 1.0)
 
 
 func _update_wave_index() -> void:
@@ -59,9 +86,14 @@ func _spawn_enemy(weights: Dictionary, batch_offset: int) -> void:
     var enemy := Enemy.new()
     enemy.add_to_group("enemies")
     enemy.configure(_enemy_types[enemy_type], _player)
-    enemy.position = _pick_edge_position(batch_offset)
+    enemy.position = _pick_spawn_position(batch_offset, enemy.body_height)
+    enemy.died.connect(_on_enemy_died)
     add_child(enemy)
     total_spawned += 1
+
+
+func _on_enemy_died(_enemy: Node3D) -> void:
+    total_killed += 1
 
 
 func _pick_weighted_type(weights: Dictionary) -> String:
@@ -78,27 +110,22 @@ func _pick_weighted_type(weights: Dictionary) -> String:
     return str(weights.keys().back())
 
 
-func _pick_edge_position(batch_offset: int) -> Vector2:
-    var candidate := Vector2.ZERO
+func _pick_spawn_position(batch_offset: int, body_height: float) -> Vector3:
+    # Enemies arrive on a ring just outside the arena, which is the 3D
+    # equivalent of the 2D prototype's off-screen edge spawning.
+    var ring_radius := arena_radius + _spawn_margin
+    var spawn_y := body_height * 0.5
+    var candidate := Vector3(ring_radius, spawn_y, 0.0)
     for attempt in range(12):
-        var edge := _random.randi_range(0, 3)
-        match edge:
-            0:
-                candidate = Vector2(_random.randf_range(_arena_bounds.position.x, _arena_bounds.end.x), _arena_bounds.position.y - _spawn_margin)
-            1:
-                candidate = Vector2(_arena_bounds.end.x + _spawn_margin, _random.randf_range(_arena_bounds.position.y, _arena_bounds.end.y))
-            2:
-                candidate = Vector2(_random.randf_range(_arena_bounds.position.x, _arena_bounds.end.x), _arena_bounds.end.y + _spawn_margin)
-            _:
-                candidate = Vector2(_arena_bounds.position.x - _spawn_margin, _random.randf_range(_arena_bounds.position.y, _arena_bounds.end.y))
-        candidate += Vector2(batch_offset * 5.0, batch_offset * 3.0)
-        if not is_instance_valid(_player) or candidate.distance_to(_player.global_position) >= _minimum_player_distance:
+        var angle := _random.randf_range(0.0, TAU) + float(batch_offset) * 0.09
+        candidate = Vector3(cos(angle) * ring_radius, spawn_y, sin(angle) * ring_radius)
+        if not is_instance_valid(_player):
+            return candidate
+        var to_player := _player.global_position - candidate
+        to_player.y = 0.0
+        if to_player.length() >= _minimum_player_distance:
             return candidate
     return candidate
-
-
-func get_alive_enemy_count() -> int:
-    return get_tree().get_nodes_in_group("enemies").size()
 
 
 func _load_config(config_path: String) -> Dictionary:

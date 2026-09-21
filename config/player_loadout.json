@@ -1,0 +1,25 @@
+{
+  "player": {
+    "max_health": 100,
+    "move_speed": 6.5,
+    "radius": 0.45,
+    "height": 1.7,
+    "invulnerability_seconds": 0.5,
+    "color": "59e5c7"
+  },
+  "starting_spells": [
+    {
+      "id": "arc_bolt",
+      "script": "res://src/gameplay/spells/auto_bolt.gd",
+      "targeting": "nearest",
+      "cooldown_seconds": 0.75,
+      "range": 9.0,
+      "damage": 6.0,
+      "projectile_speed": 18.0,
+      "projectile_radius": 0.18,
+      "lifetime_seconds": 1.5,
+      "pierce": 0,
+      "color": "8fd6ff"
+    }
+  ]
+}
