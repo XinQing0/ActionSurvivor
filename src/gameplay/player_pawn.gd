@@ -13,6 +13,10 @@ var body_height := 1.7
 var invulnerability_seconds := 0.5
 var body_color := Color(0.35, 0.9, 0.78)
 var arena_radius := 14.0
+var pickup_radius := 2.2
+## Global run modifiers. Movement speed, maximum health, and pickup radius are
+## all read through here so a stat upgrade applies without touching the pawn.
+var stats: RefCounted
 
 var _invulnerable_for := 0.0
 var _mesh_instance: MeshInstance3D
@@ -39,13 +43,50 @@ func configure(definition: Dictionary) -> void:
     body_radius = float(definition.get("radius", body_radius))
     body_height = maxf(float(definition.get("height", body_height)), body_radius * 2.0)
     invulnerability_seconds = float(definition.get("invulnerability_seconds", invulnerability_seconds))
+    pickup_radius = float(definition.get("pickup_radius", pickup_radius))
     body_color = Color.from_string(str(definition.get("color", "59e5c7")), body_color)
     _apply_shape()
-    health_changed.emit(health, max_health)
+    health_changed.emit(health, get_max_health())
 
 
 func is_alive() -> bool:
     return health > 0.0
+
+
+func get_max_health() -> float:
+    if stats == null:
+        return max_health
+    return max_health + stats.max_health_bonus
+
+
+func get_move_speed() -> float:
+    if stats == null:
+        return move_speed
+    return move_speed * stats.move_speed_multiplier
+
+
+func get_health_regen() -> float:
+    return 0.0 if stats == null else stats.health_regen_per_second
+
+
+func get_pickup_radius() -> float:
+    if stats == null:
+        return pickup_radius
+    return pickup_radius + stats.pickup_radius_bonus
+
+
+func heal(amount: float) -> void:
+    if not is_alive():
+        return
+    health = minf(health + amount, get_max_health())
+    health_changed.emit(health, get_max_health())
+
+
+## Called after a maximum-health upgrade so the new ceiling is usable now
+## rather than only after finding healing.
+func refresh_max_health(heal_by: float) -> void:
+    health = minf(health + heal_by, get_max_health())
+    health_changed.emit(health, get_max_health())
 
 
 func get_facing() -> Vector3:
@@ -57,7 +98,7 @@ func apply_damage(amount: float) -> void:
         return
     health = maxf(health - amount, 0.0)
     _invulnerable_for = invulnerability_seconds
-    health_changed.emit(health, max_health)
+    health_changed.emit(health, get_max_health())
     if health <= 0.0:
         died.emit()
 
@@ -65,6 +106,10 @@ func apply_damage(amount: float) -> void:
 func _physics_process(delta: float) -> void:
     _invulnerable_for = maxf(_invulnerable_for - delta, 0.0)
     _mesh_instance.transparency = 0.55 if _invulnerable_for > 0.0 else 0.0
+
+    var regen := get_health_regen()
+    if regen > 0.0 and is_alive() and health < get_max_health():
+        heal(regen * delta)
 
     if not is_alive():
         velocity = Vector3.ZERO
@@ -77,7 +122,7 @@ func _physics_process(delta: float) -> void:
     var direction := Vector3(input_vector.x, 0.0, input_vector.y)
     if direction.length_squared() > 0.0:
         _facing = direction.normalized()
-    velocity = direction * move_speed
+    velocity = direction * get_move_speed()
     move_and_slide()
 
     var flat := Vector2(global_position.x, global_position.z)

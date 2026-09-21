@@ -1,14 +1,29 @@
 # ActionSurvivor
 
-An action-survival game inspired by horde shooters, arena combat, and roguelite dungeon adventures.
+A 2.5D horde-survival roguelite set in an abandoned alchemy workshop. Your
+spells cast themselves; you decide where to stand and what to build.
 
 ## Project status
 
-The project is in pre-production. Godot 4 with GDScript has been selected, and the game is a 2.5D horde-survival roguelite: 3D scenes viewed through a fixed angled camera, spells that fire automatically, and short self-contained runs.
+Playable. A run has a title screen, a wave-paced horde, five spells that differ
+in shape, experience orbs, a level-up draft, stat upgrades, and a win or loss
+ending with a restart. Everything renders as programmatically built placeholder
+meshes: no art yet.
 
-Milestone 1 is implemented. It is a complete, losable run loop built from placeholder meshes: wave pacing, contact damage, one auto-casting spell, and a win or loss ending.
+See [the design direction](docs/design-direction.md), [the run
+loop](docs/run-loop.md), and [the engine decision](docs/engine-decision-godot.md).
 
-See [the design direction](docs/design-direction.md), [the engine decision](docs/engine-decision-godot.md), and [the prototype guide](docs/wave-prototype.md).
+## Play it
+
+1. Install the standard Godot 4 build (the .NET build is not required). The
+   game uses the Forward+ renderer, so a Vulkan-capable GPU is needed.
+2. Open `project.godot` in Godot and press play, or run `godot --path .` from
+   the repository root.
+3. Pick a 90-second quick run or a 10-minute full run.
+
+Move with WASD or the arrow keys. That is the only control. Spells fire on
+their own. Every level-up pauses for a three-card choice: press 1, 2 or 3, or
+click. Escape abandons a run.
 
 ## Repository layout
 
@@ -22,7 +37,27 @@ tools/        Development, content-pipeline, and repository scripts
 .githooks/    Version-controlled local Git policy hooks
 ```
 
-Each top-level directory contains a short README describing what belongs there. Engine-generated directories should be added only after the engine is selected, with generated files excluded through `.gitignore`.
+Each top-level directory contains a short README describing what belongs there.
+
+## Checks
+
+Headless runtime tests, which boot the real scene. `--fixed-fps 60` is required
+for reproducible results; see [the tests](tests/README.md) for why.
+
+```powershell
+godot --headless --fixed-fps 60 --path . --script res://tests/run_headless_smoke.gd
+```
+
+```powershell
+godot --headless --fixed-fps 60 --path . --script res://tests/run_headless_playthrough.gd -- full
+```
+
+Static configuration check, for environments where Godot is unavailable or not
+on `PATH`:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools/validate-config.ps1
+```
 
 ## Development workflow
 
@@ -34,28 +69,5 @@ Direct work on `main` is prohibited.
 4. Push it: `git push -u origin feature/<short-description>`.
 5. Review the changes, then merge the feature branch into `main`.
 
-Run `powershell -ExecutionPolicy Bypass -File tools/setup-git-hooks.ps1` once after cloning. See [CONTRIBUTING.md](CONTRIBUTING.md) for the complete rules.
-
-## Run the prototype
-
-1. Install the standard Godot 4 build (the .NET build is not required). The
-   prototype uses the Forward+ renderer, so a Vulkan-capable GPU is needed.
-2. Open `project.godot` in Godot, or run `godot --path .` from the repository root.
-3. Move with WASD or the arrow keys. Your spell fires on its own. The
-   accelerated demo run lasts 90 seconds; standing still gets you killed.
-
-## Checks
-
-Headless runtime smoke test. It boots the real scene and asserts that waves
-spawn, the spell kills enemies, and the run ends:
-
-```powershell
-godot --headless --path . --script res://tests/run_headless_smoke.gd
-```
-
-Static configuration check, for environments where Godot is unavailable or not
-on `PATH`:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File tools/validate-wave-config.ps1
-```
+Run `powershell -ExecutionPolicy Bypass -File tools/setup-git-hooks.ps1` once
+after cloning. See [CONTRIBUTING.md](CONTRIBUTING.md) for the complete rules.

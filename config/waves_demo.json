@@ -1,36 +1,40 @@
 {
   "random_seed": 20260915,
-  "arena_radius": 14.0,
+  "arena_radius": 26.0,
   "run_duration_seconds": 90,
-  "spawn_margin": 2.0,
-  "minimum_player_distance": 5.5,
+  "spawn_ring_radius": 16.0,
+  "despawn_radius": 30.0,
+  "minimum_player_distance": 9.0,
   "enemy_types": {
     "vermin": {
-      "speed": 2.6,
+      "speed": 3.2,
       "health": 10,
       "radius": 0.35,
       "height": 0.8,
       "contact_damage": 6,
       "attack_interval_seconds": 0.8,
-      "color": "9b6b55"
+      "color": "9b6b55",
+      "experience": 2
     },
     "bat": {
-      "speed": 4.4,
+      "speed": 6.9,
       "health": 7,
       "radius": 0.3,
       "height": 0.7,
       "contact_damage": 4,
       "attack_interval_seconds": 0.6,
-      "color": "9a78d1"
+      "color": "9a78d1",
+      "experience": 3
     },
     "golem": {
-      "speed": 1.7,
+      "speed": 2.2,
       "health": 42,
       "radius": 0.7,
       "height": 1.6,
       "contact_damage": 14,
       "attack_interval_seconds": 1.2,
-      "color": "a88f65"
+      "color": "a88f65",
+      "experience": 10
     }
   },
   "waves": [
@@ -39,25 +43,28 @@
       "spawn_interval_seconds": 1.6,
       "batch_size": 2,
       "max_alive": 28,
+      "health_multiplier": 1.0,
       "type_weights": {
         "vermin": 1.0
       }
     },
     {
       "start_time_seconds": 25,
-      "spawn_interval_seconds": 1.2,
+      "spawn_interval_seconds": 1.25,
       "batch_size": 3,
-      "max_alive": 48,
+      "max_alive": 44,
+      "health_multiplier": 1.4,
       "type_weights": {
-        "vermin": 0.75,
-        "bat": 0.25
+        "vermin": 0.74,
+        "bat": 0.26
       }
     },
     {
       "start_time_seconds": 55,
-      "spawn_interval_seconds": 0.85,
+      "spawn_interval_seconds": 0.95,
       "batch_size": 4,
-      "max_alive": 72,
+      "max_alive": 64,
+      "health_multiplier": 2.0,
       "type_weights": {
         "vermin": 0.58,
         "bat": 0.27,

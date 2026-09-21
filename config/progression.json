@@ -1,0 +1,100 @@
+{
+  "xp_curve": {
+    "base": 5,
+    "growth": 4.0,
+    "exponent": 1.35
+  },
+  "orb": {
+    "radius": 0.22,
+    "magnet_speed": 14.0,
+    "color": "7de8b0"
+  },
+  "draft": {
+    "options": 3,
+    "new_spell_weight": 3.0,
+    "spell_level_weight": 2.0,
+    "stat_upgrade_weight": 2.0
+  },
+  "upgrades": [
+    {
+      "id": "focus",
+      "name": "Sharpened Focus",
+      "description": "+15% spell damage.",
+      "field": "damage_multiplier",
+      "amount": 0.15,
+      "max_stacks": 6
+    },
+    {
+      "id": "haste",
+      "name": "Quickened Casting",
+      "description": "-8% spell cooldown.",
+      "field": "cooldown_multiplier",
+      "amount": -0.08,
+      "max_stacks": 5
+    },
+    {
+      "id": "reach",
+      "name": "Wider Reach",
+      "description": "+15% spell range and area.",
+      "field": "area_multiplier",
+      "amount": 0.15,
+      "max_stacks": 5
+    },
+    {
+      "id": "velocity",
+      "name": "Swift Missiles",
+      "description": "+20% projectile speed.",
+      "field": "projectile_speed_multiplier",
+      "amount": 0.2,
+      "max_stacks": 4
+    },
+    {
+      "id": "split",
+      "name": "Split Casting",
+      "description": "+1 projectile for every spell.",
+      "field": "projectile_count_bonus",
+      "amount": 1,
+      "max_stacks": 3
+    },
+    {
+      "id": "boots",
+      "name": "Fleet Boots",
+      "description": "+10% movement speed.",
+      "field": "move_speed_multiplier",
+      "amount": 0.1,
+      "max_stacks": 5
+    },
+    {
+      "id": "vitality",
+      "name": "Vital Reserves",
+      "description": "+25 maximum health, and heal for it.",
+      "field": "max_health_bonus",
+      "amount": 25.0,
+      "max_stacks": 5
+    },
+    {
+      "id": "lodestone",
+      "name": "Lodestone",
+      "description": "+1.5m pickup radius.",
+      "field": "pickup_radius_bonus",
+      "amount": 1.5,
+      "max_stacks": 4
+    },
+    {
+      "id": "scholar",
+      "name": "Scholar",
+      "description": "+20% experience gained.",
+      "field": "xp_multiplier",
+      "amount": 0.2,
+      "max_stacks": 4
+    },
+    {
+      "id": "mending",
+      "name": "Mending Draught",
+      "description": "Recover 0.6 health every second.",
+      "field": "health_regen_per_second",
+      "amount": 0.6,
+      "max_stacks": 5
+    }
+  ]
+}

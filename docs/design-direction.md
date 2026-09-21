@@ -2,10 +2,10 @@
 
 ## Status
 
-Accepted. Milestone 1 is implemented; see
-[the prototype guide](wave-prototype.md), which replaces the earlier 2D
-top-down prototype. The [Godot engine decision](engine-decision-godot.md)
-remains valid.
+Accepted. Milestones 1 and 2 are implemented; see
+[the run loop](run-loop.md), which replaces the earlier 2D top-down
+prototype. The [Godot engine decision](engine-decision-godot.md) remains
+valid.
 
 ## Reference
 
@@ -92,7 +92,7 @@ Keep:
 - `config/waves_demo.json` and `config/waves_10min.json`. The pacing schema
   (start time, spawn interval, batch size, alive cap, type weights) is
   dimension-independent.
-- `tools/validate-wave-config.ps1`.
+- `tools/validate-config.ps1`.
 - The wave-director *logic* in `src/gameplay/wave_director.gd`: wave selection,
   weighted type choice, alive cap, and minimum-spawn-distance are all portable.
 
@@ -115,8 +115,10 @@ Add:
 1. ~~**3D vertical slice of the existing loop.**~~ Done. Port the wave director to 3D,
    placeholder meshes, camera rig, player health, contact damage, death. No
    spells yet beyond one auto-firing projectile.
-2. **Spell system and draft.** Three to five spells with real differences in
-   targeting and shape, plus the level-up choice screen.
+2. ~~**Spell system and draft.**~~ Done. Five spells that differ in targeting
+   and shape, experience orbs, a level curve, and the level-up choice screen.
+   Stat upgrades came along with it rather than waiting for milestone 3,
+   because without them a build had no way to answer attrition.
 3. **Build depth.** Modifiers and spell interactions; the first pass at what
    makes two runs feel different.
 4. **Art direction pass.** Lock palette, lighting, and effect budget against the

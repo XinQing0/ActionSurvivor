@@ -1,11 +1,41 @@
 # Tests
 
-Store automated tests, test fixtures, and test-specific helpers here. Organize tests to mirror the source structure when practical.
+Store automated tests, test fixtures, and test-specific helpers here. Organize
+tests to mirror the source structure when practical.
 
-- `run_headless_smoke.gd` boots the real main scene under a headless Godot and
-  asserts that the run loop works end to end. Run it from the repository root:
+Both tests boot the real `src/main.tscn` under a headless Godot and exit
+non-zero on the first failed check, so either can gate CI.
 
-  ```
-  godot --headless --path . --script res://tests/run_headless_smoke.gd
-  ```
+**Always pass `--fixed-fps 60`.** Godot then advances the clock by a fixed step
+instead of by real elapsed time. Together with the seeded spawn RNG this makes
+a whole run reproducible; two consecutive full runs produce byte-identical
+results. Without it the same code diverges wildly between runs and neither test
+means anything.
 
+## `run_headless_smoke.gd`
+
+Boots the scene and checks that every system fires at least once: waves spawn,
+spells kill, experience drops and is collected, levelling opens a draft, a
+draft pick applies, and the run ends. The pawn is never driven, so a stationary
+player is worn down by contact damage; that is the loss path.
+
+```powershell
+godot --headless --fixed-fps 60 --path . --script res://tests/run_headless_smoke.gd
+```
+
+## `run_headless_playthrough.gd`
+
+Drives the pawn with a simple kiting policy through a whole run and checks the
+win path, which the smoke test never reaches. Movement goes through
+`Input.action_press` rather than being written onto the pawn, so the real input
+path is exercised. Draft picks follow a rough imitation of competent play:
+collect a few spells, then specialise, with about one pick in three spent on a
+stat.
+
+```powershell
+godot --headless --fixed-fps 60 --path . --script res://tests/run_headless_playthrough.gd
+godot --headless --fixed-fps 60 --path . --script res://tests/run_headless_playthrough.gd -- full
+```
+
+The bot is a difficulty *floor*, not a stand-in for a player. It passing means
+a run is completable, not that it is fun or well balanced.

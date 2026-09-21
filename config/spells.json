@@ -1,0 +1,113 @@
+{
+  "max_spells": 5,
+  "spells": [
+    {
+      "id": "arc_bolt",
+      "name": "Arc Bolt",
+      "description": "Fires at the nearest enemy. Extra shots pick separate targets.",
+      "script": "res://src/gameplay/spells/bolt_spell.gd",
+      "max_level": 5,
+      "base": {
+        "cooldown_seconds": 0.55,
+        "range": 10.0,
+        "damage": 8.0,
+        "projectile_speed": 18.0,
+        "projectile_radius": 0.18,
+        "lifetime_seconds": 1.5,
+        "pierce": 0,
+        "projectile_count": 1,
+        "color": "8fd6ff"
+      },
+      "per_level": {
+        "damage": 2.0,
+        "cooldown_seconds": -0.06,
+        "projectile_count": 0.5
+      }
+    },
+    {
+      "id": "cinder_nova",
+      "name": "Cinder Nova",
+      "description": "Pulses outward, hitting everything around you at once.",
+      "script": "res://src/gameplay/spells/nova_spell.gd",
+      "max_level": 5,
+      "base": {
+        "cooldown_seconds": 2.2,
+        "area": 3.4,
+        "damage": 14.0,
+        "color": "ffb45c"
+      },
+      "per_level": {
+        "damage": 3.0,
+        "area": 0.45,
+        "cooldown_seconds": -0.15
+      }
+    },
+    {
+      "id": "warding_orbs",
+      "name": "Warding Orbs",
+      "description": "Orbs circle you and grind down anything that touches them.",
+      "script": "res://src/gameplay/spells/orbit_spell.gd",
+      "max_level": 5,
+      "base": {
+        "cooldown_seconds": 0.6,
+        "damage": 6.0,
+        "orbit_radius": 2.6,
+        "orbit_speed": 2.2,
+        "projectile_radius": 0.28,
+        "projectile_count": 2,
+        "color": "c8a0ff"
+      },
+      "per_level": {
+        "damage": 1.6,
+        "projectile_count": 0.5,
+        "orbit_radius": 0.15
+      }
+    },
+    {
+      "id": "ember_spray",
+      "name": "Ember Spray",
+      "description": "A piercing cone in the direction you are running.",
+      "script": "res://src/gameplay/spells/spray_spell.gd",
+      "max_level": 5,
+      "base": {
+        "cooldown_seconds": 1.1,
+        "range": 8.0,
+        "damage": 5.5,
+        "projectile_speed": 15.0,
+        "projectile_radius": 0.16,
+        "lifetime_seconds": 0.9,
+        "pierce": 1,
+        "projectile_count": 1,
+        "extra_projectiles": 2,
+        "spread_degrees": 46.0,
+        "color": "ff8fa8"
+      },
+      "per_level": {
+        "damage": 1.5,
+        "extra_projectiles": 0.5,
+        "cooldown_seconds": -0.07
+      }
+    },
+    {
+      "id": "static_chain",
+      "name": "Static Chain",
+      "description": "Strikes the nearest enemy, then leaps to others nearby.",
+      "script": "res://src/gameplay/spells/chain_spell.gd",
+      "max_level": 5,
+      "base": {
+        "cooldown_seconds": 1.6,
+        "range": 8.5,
+        "damage": 9.0,
+        "jump_range": 4.0,
+        "jumps": 2,
+        "falloff": 0.85,
+        "color": "9ef2ff"
+      },
+      "per_level": {
+        "damage": 2.2,
+        "jumps": 1.0,
+        "cooldown_seconds": -0.1
+      }
+    }
+  ]
+}

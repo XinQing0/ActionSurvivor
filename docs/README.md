@@ -9,5 +9,5 @@ Store game-design documents, technical decisions, architecture notes, and develo
 ## Technical decisions
 
 - [Godot engine decision](engine-decision-godot.md)
-- [Milestone 1 prototype: the 2.5D run loop](wave-prototype.md)
+- [The run loop](run-loop.md)
 
