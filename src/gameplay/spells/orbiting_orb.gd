@@ -9,6 +9,7 @@ const GameLayers := preload("res://src/gameplay/game_layers.gd")
 
 var damage := 5.0
 var hit_interval := 0.6
+var source_spell: Node
 
 var _anchor: Node3D
 var _orbit_radius := 2.6
@@ -81,4 +82,7 @@ func _try_hit(body: Node3D) -> void:
     if _time - previous < hit_interval:
         return
     _last_hit[body_id] = _time
-    body.take_damage(damage)
+    if is_instance_valid(source_spell) and source_spell.has_method("deal_hit"):
+        source_spell.deal_hit(body, damage)
+    else:
+        body.take_damage(damage)

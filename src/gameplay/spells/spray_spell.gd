@@ -19,9 +19,18 @@ func _cast() -> void:
         forward = Vector3.FORWARD
 
     var count := get_projectile_count() + int(base_stat("extra_projectiles", 2.0))
+    _fire_cone(origin, forward, count, {})
+
+    if has_augment("backdraft"):
+        var rear_count := maxi(int(ceil(float(count) * augment_param("backdraft", "rear_fraction", 0.5))), 1)
+        var rear_damage := get_damage() * augment_param("backdraft", "rear_damage", 0.75)
+        _fire_cone(origin, -forward, rear_count, {"damage": rear_damage})
+
+
+func _fire_cone(origin: Vector3, forward: Vector3, count: int, overrides: Dictionary) -> void:
     var spread := deg_to_rad(base_stat("spread_degrees", 46.0))
     for index in range(count):
         # A single projectile goes straight ahead instead of off to one side.
         var t := 0.0 if count <= 1 else float(index) / float(count - 1) - 0.5
         var aim := forward.rotated(Vector3.UP, t * spread)
-        spawn_projectile(origin, aim)
+        spawn_projectile(origin, aim, overrides)

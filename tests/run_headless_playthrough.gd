@@ -154,14 +154,23 @@ func _pick_option() -> void:
     if _drafts_resolved % 3 != 2:
         wanted = "spell_level" if owned >= 3 else "new_spell"
 
-    var choice := 0
-    for index in range(options.size()):
-        if str(options[index].get("kind", "")) == wanted:
-            choice = index
-            break
+    # Failing that, an augment beats an arbitrary card: it only ever improves a
+    # spell the build already owns.
+    var choice := _first_of_kind(options, wanted)
+    if choice < 0:
+        choice = _first_of_kind(options, "augment")
+    if choice < 0:
+        choice = 0
 
     _drafts_resolved += 1
     screen._choose(choice)
+
+
+func _first_of_kind(options: Array, kind: String) -> int:
+    for index in range(options.size()):
+        if str(options[index].get("kind", "")) == kind:
+            return index
+    return -1
 
 
 # --- Reporting ------------------------------------------------------------
@@ -222,6 +231,7 @@ func _report() -> void:
     print("peak alive        %d" % _peak_alive)
     print("level             %d after %d drafts" % [progression.level, _drafts_resolved])
     print("build             %s" % _main._describe_build())
+    print("reactions         %s" % str(_main.reactions.counts))
     print("lowest health     %d%%" % roundi(_lowest_health_fraction * 100.0))
     print("worst frame       %.1fms, %d frames over 16.7ms" % [_worst_frame_ms, _slow_frames])
     print("result            %s" % ("WON" if _main.run_state == _main.RunState.WON else "LOST"))

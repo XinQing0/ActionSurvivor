@@ -2,6 +2,9 @@ extends Node
 
 const Enemy := preload("res://src/gameplay/enemy.gd")
 
+## Handed to every enemy so statuses can resolve into reactions.
+var reactions: Node
+
 signal enemy_died(position: Vector3, experience: int)
 
 var elapsed_time := 0.0
@@ -132,6 +135,7 @@ func _spawn_enemy(weights: Dictionary, batch_offset: int) -> void:
         return
     var enemy := Enemy.new()
     enemy.add_to_group("enemies")
+    enemy.reactions = reactions
     enemy.configure(_enemy_types[enemy_type], _player, get_health_multiplier())
     enemy.position = _pick_spawn_position(batch_offset, enemy.body_height)
     enemy.died.connect(_on_enemy_died)

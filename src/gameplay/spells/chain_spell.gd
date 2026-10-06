@@ -19,7 +19,11 @@ func _cast() -> void:
 
     var jump_range := base_stat("jump_range", 4.0) * _multiplier("area_multiplier")
     var jumps := int(base_stat("jumps", 2.0))
-    var falloff := clampf(base_stat("falloff", 0.85), 0.1, 1.0)
+    var falloff := base_stat("falloff", 0.85)
+    if has_augment("conductive_web"):
+        jumps += int(augment_param("conductive_web", "extra_jumps", 0.0))
+        falloff = maxf(falloff, augment_param("conductive_web", "falloff", falloff))
+    falloff = clampf(falloff, 0.1, 1.0)
     var damage := get_damage()
     var color := Color.from_string(str(_base.get("color", "9ef2ff")), Color.CYAN)
 
@@ -35,8 +39,7 @@ func _cast() -> void:
         # Capture the position before the hit: a lethal hit frees the node and
         # the next jump still needs somewhere to search from.
         from = to
-        if current.has_method("take_damage"):
-            current.take_damage(damage)
+        deal_hit(current, damage)
         damage *= falloff
         current = _next_link(from, jump_range, struck)
 

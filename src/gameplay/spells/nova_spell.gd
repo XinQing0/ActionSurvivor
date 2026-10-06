@@ -14,11 +14,21 @@ func _has_valid_target() -> bool:
 
 
 func _cast() -> void:
+    _pulse(1.0)
+    if has_augment("twin_pulse"):
+        var delay := augment_param("twin_pulse", "delay", 0.35)
+        get_tree().create_timer(delay).timeout.connect(
+            _pulse.bind(augment_param("twin_pulse", "scale", 0.6))
+        )
+
+
+func _pulse(damage_scale: float) -> void:
+    if not is_instance_valid(caster):
+        return
     var radius := get_area()
-    var damage := get_damage()
+    var damage := get_damage() * damage_scale
     for enemy in enemies_within(radius):
-        if enemy.has_method("take_damage"):
-            enemy.take_damage(damage)
+        deal_hit(enemy, damage)
 
     var effect := RingEffect.new()
     effect.configure(radius, Color.from_string(str(_base.get("color", "ffb45c")), Color.ORANGE))

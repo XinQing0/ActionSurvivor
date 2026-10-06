@@ -60,5 +60,6 @@ func _rebuild_orbs() -> void:
         )
         orb.damage = get_damage()
         orb.hit_interval = get_cooldown()
+        orb.source_spell = self
         projectile_parent.add_child(orb)
         _orbs.append(orb)

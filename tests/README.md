@@ -37,5 +37,17 @@ godot --headless --fixed-fps 60 --path . --script res://tests/run_headless_playt
 godot --headless --fixed-fps 60 --path . --script res://tests/run_headless_playthrough.gd -- full
 ```
 
+## `run_headless_build_test.gd`
+
+Does not play a run. Builds small controlled situations inside the real scene
+and asserts exact outcomes: statuses apply, expire and refresh; each reaction
+fires, consumes its statuses and respects its lockout; Wildfire, Catalyst and
+Brittle Cold behave; a bolt rebounds only when Ricochet is owned; the draft
+offers an augment only when its requirement is met and never twice.
+
+```powershell
+godot --headless --fixed-fps 60 --path . --script res://tests/run_headless_build_test.gd
+```
+
 The bot is a difficulty *floor*, not a stand-in for a player. It passing means
 a run is completable, not that it is fun or well balanced.

@@ -1,0 +1,44 @@
+{
+  "max_chain_depth": 2,
+  "lockout_seconds": 1.2,
+  "reactions": [
+    {
+      "id": "overload",
+      "name": "OVERLOAD",
+      "requires": [
+        "burn",
+        "shock"
+      ],
+      "damage": 24.0,
+      "radius": 3.2,
+      "color": "ffe066"
+    },
+    {
+      "id": "shatter",
+      "name": "SHATTER",
+      "requires": [
+        "chill",
+        "shock"
+      ],
+      "damage": 48.0,
+      "radius": 0.0,
+      "color": "bfe9ff"
+    },
+    {
+      "id": "steam",
+      "name": "STEAM",
+      "requires": [
+        "burn",
+        "chill"
+      ],
+      "damage": 10.0,
+      "radius": 3.0,
+      "apply": {
+        "id": "chill",
+        "duration": 2.5,
+        "potency": 0.35
+      },
+      "color": "dfe9ee"
+    }
+  ]
+}

@@ -10,6 +10,14 @@ var lifetime := 1.5
 var body_radius := 0.18
 var body_color := Color(0.56, 0.84, 1.0)
 
+## The spell that fired this. Hits are routed through it so its status applies.
+var source_spell: Node
+
+## Rebounds still available. Only an augment grants them.
+var bounces := 0
+var bounce_range := 6.0
+var bounce_retained := 0.8
+
 var _hits_remaining := 1
 var _already_hit: Array[int] = []
 var _collision_shape: CollisionShape3D
@@ -34,6 +42,9 @@ func configure(definition: Dictionary, start_position: Vector3, travel_direction
     lifetime = float(definition.get("lifetime_seconds", lifetime))
     body_radius = float(definition.get("projectile_radius", body_radius))
     body_color = Color.from_string(str(definition.get("color", "8fd6ff")), body_color)
+    bounces = int(definition.get("bounces", bounces))
+    bounce_range = float(definition.get("bounce_range", bounce_range))
+    bounce_retained = float(definition.get("bounce_retained", bounce_retained))
     _hits_remaining = pierce + 1
     direction = travel_direction.normalized() if travel_direction.length_squared() > 0.0 else Vector3.FORWARD
     position = start_position
@@ -59,10 +70,42 @@ func _on_body_entered(body: Node3D) -> void:
     if _already_hit.has(body_id):
         return
     _already_hit.append(body_id)
-    body.take_damage(damage)
+    if is_instance_valid(source_spell) and source_spell.has_method("deal_hit"):
+        source_spell.deal_hit(body, damage)
+    else:
+        body.take_damage(damage)
+    if bounces > 0 and _rebound(body):
+        return
     _hits_remaining -= 1
     if _hits_remaining <= 0:
         queue_free()
+
+
+## Redirects towards the nearest enemy this projectile has not touched yet.
+## Returns false when there is nobody to rebound to, so the projectile ends
+## normally instead of flying on through empty space.
+func _rebound(from_body: Node3D) -> bool:
+    var best: Node3D = null
+    var best_distance := bounce_range * bounce_range
+    for candidate in get_tree().get_nodes_in_group("enemies"):
+        var enemy := candidate as Node3D
+        if enemy == null or enemy == from_body or _already_hit.has(enemy.get_instance_id()):
+            continue
+        var offset := enemy.global_position - global_position
+        offset.y = 0.0
+        if offset.length_squared() <= best_distance:
+            best_distance = offset.length_squared()
+            best = enemy
+    if best == null:
+        return false
+    var aim := best.global_position - global_position
+    aim.y = 0.0
+    direction = aim.normalized()
+    bounces -= 1
+    damage *= bounce_retained
+    # Enough time to cross the gap even if the original flight was nearly spent.
+    lifetime = maxf(lifetime, bounce_range / maxf(speed, 0.5) + 0.1)
+    return true
 
 
 func _apply_shape() -> void:

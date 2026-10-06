@@ -6,6 +6,18 @@ extends "res://src/gameplay/spells/spell.gd"
 ## so stacking count turns it into crowd clearing rather than overkill.
 
 
+## Rebounds come from an augment, so they are passed per projectile rather than
+## read from the spell definition.
+func _bolt_overrides() -> Dictionary:
+    if not has_augment("ricochet"):
+        return {}
+    return {
+        "bounces": int(augment_param("ricochet", "bounces", 0.0)),
+        "bounce_range": augment_param("ricochet", "range", 6.0),
+        "bounce_retained": augment_param("ricochet", "retained", 0.8),
+    }
+
+
 func _has_valid_target() -> bool:
     return nearest_enemy(get_range()) != null
 
@@ -21,6 +33,7 @@ func _cast() -> void:
         return flat_distance_squared(origin, a.global_position) < flat_distance_squared(origin, b.global_position)
     )
 
+    var overrides := _bolt_overrides()
     for index in range(wanted):
         var target: Node3D = targets[index % targets.size()]
         var aim: Vector3 = target.global_position - origin
@@ -29,4 +42,4 @@ func _cast() -> void:
         # bolts stay visually distinct instead of overlapping exactly.
         if index >= targets.size():
             aim = aim.rotated(Vector3.UP, _random.randf_range(-0.12, 0.12))
-        spawn_projectile(origin, aim)
+        spawn_projectile(origin, aim, overrides)

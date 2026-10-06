@@ -139,5 +139,7 @@ func _accent_for(option: Dictionary) -> Color:
             return UiTheme.EMBER
         "spell_level":
             return UiTheme.EXPERIENCE
+        "augment":
+            return Color(0.82, 0.62, 1.0)
         _:
             return UiTheme.PANEL_EDGE.lightened(0.35)

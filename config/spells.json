@@ -5,6 +5,7 @@
       "id": "arc_bolt",
       "name": "Arc Bolt",
       "description": "Fires at the nearest enemy. Extra shots pick separate targets.",
+      "element": "lightning",
       "script": "res://src/gameplay/spells/bolt_spell.gd",
       "max_level": 5,
       "base": {
@@ -22,12 +23,18 @@
         "damage": 2.0,
         "cooldown_seconds": -0.06,
         "projectile_count": 0.5
+      },
+      "status": {
+        "id": "shock",
+        "duration": 3.0,
+        "potency": 1.0
       }
     },
     {
       "id": "cinder_nova",
       "name": "Cinder Nova",
       "description": "Pulses outward, hitting everything around you at once.",
+      "element": "fire",
       "script": "res://src/gameplay/spells/nova_spell.gd",
       "max_level": 5,
       "base": {
@@ -40,12 +47,19 @@
         "damage": 3.0,
         "area": 0.45,
         "cooldown_seconds": -0.15
+      },
+      "status": {
+        "id": "burn",
+        "duration": 3.0,
+        "potency": 4.0,
+        "scales_with_damage": true
       }
     },
     {
       "id": "warding_orbs",
       "name": "Warding Orbs",
-      "description": "Orbs circle you and grind down anything that touches them.",
+      "description": "Orbs circle you, chilling and grinding down anything that touches them.",
+      "element": "frost",
       "script": "res://src/gameplay/spells/orbit_spell.gd",
       "max_level": 5,
       "base": {
@@ -61,12 +75,18 @@
         "damage": 1.6,
         "projectile_count": 0.5,
         "orbit_radius": 0.15
+      },
+      "status": {
+        "id": "chill",
+        "duration": 2.5,
+        "potency": 0.35
       }
     },
     {
       "id": "ember_spray",
       "name": "Ember Spray",
       "description": "A piercing cone in the direction you are running.",
+      "element": "fire",
       "script": "res://src/gameplay/spells/spray_spell.gd",
       "max_level": 5,
       "base": {
@@ -86,12 +106,19 @@
         "damage": 1.5,
         "extra_projectiles": 0.5,
         "cooldown_seconds": -0.07
+      },
+      "status": {
+        "id": "burn",
+        "duration": 3.0,
+        "potency": 3.0,
+        "scales_with_damage": true
       }
     },
     {
       "id": "static_chain",
       "name": "Static Chain",
       "description": "Strikes the nearest enemy, then leaps to others nearby.",
+      "element": "lightning",
       "script": "res://src/gameplay/spells/chain_spell.gd",
       "max_level": 5,
       "base": {
@@ -107,6 +134,11 @@
         "damage": 2.2,
         "jumps": 1.0,
         "cooldown_seconds": -0.1
+      },
+      "status": {
+        "id": "shock",
+        "duration": 4.0,
+        "potency": 1.0
       }
     }
   ]

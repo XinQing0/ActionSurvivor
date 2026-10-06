@@ -7,6 +7,8 @@ extends Node3D
 const LOADOUT_CONFIG_PATH := "res://config/player_loadout.json"
 const SPELL_CONFIG_PATH := "res://config/spells.json"
 const PROGRESSION_CONFIG_PATH := "res://config/progression.json"
+const AUGMENT_CONFIG_PATH := "res://config/augments.json"
+const REACTION_CONFIG_PATH := "res://config/reactions.json"
 
 const DEMO_WAVES_PATH := "res://config/waves_demo.json"
 const FULL_WAVES_PATH := "res://config/waves_10min.json"
@@ -19,6 +21,7 @@ const PlayerStats := preload("res://src/gameplay/player_stats.gd")
 const Progression := preload("res://src/gameplay/progression.gd")
 const Draft := preload("res://src/gameplay/draft.gd")
 const XpOrb := preload("res://src/gameplay/xp_orb.gd")
+const Reactions := preload("res://src/gameplay/reactions.gd")
 const Hud := preload("res://src/ui/hud.gd")
 const DraftScreen := preload("res://src/ui/draft_screen.gd")
 const OverlayScreen := preload("res://src/ui/overlay_screen.gd")
@@ -37,6 +40,7 @@ var camera: Camera3D
 var run_state := RunState.TITLE
 var stats: RefCounted
 var progression: RefCounted
+var reactions: Node
 
 var _draft: RefCounted
 var _spell_root: Node
@@ -47,6 +51,7 @@ var _draft_screen: CanvasLayer
 var _overlay: CanvasLayer
 var _owned_spells := {}
 var _taken_upgrades := {}
+var _taken_augments := {}
 var _orb_settings := {}
 var _run_seed := 20260915
 
@@ -64,7 +69,12 @@ func _ready() -> void:
     progression = Progression.new()
     progression.configure(progression_config.get("xp_curve", {}))
     _draft = Draft.new()
-    _draft.configure(spell_config, progression_config, _run_seed)
+    _draft.configure(spell_config, progression_config, _run_seed, _load_json(AUGMENT_CONFIG_PATH))
+
+    reactions = Reactions.new()
+    reactions.name = "Reactions"
+    reactions.configure(_load_json(REACTION_CONFIG_PATH), stats, self)
+    add_child(reactions)
 
     player = PlayerPawn.new()
     player.stats = stats
@@ -72,6 +82,7 @@ func _ready() -> void:
     add_child(player)
 
     director = WaveDirector.new()
+    director.reactions = reactions
     director.configure(selected_waves_path, player)
     add_child(director)
     director.enemy_died.connect(_on_enemy_died)
@@ -272,7 +283,7 @@ func _on_player_health_changed(_current: float, _maximum: float) -> void:
 func _open_draft() -> bool:
     if not progression.consume_pending_level():
         return false
-    var options: Array[Dictionary] = _draft.build_options(_owned_spells, _taken_upgrades)
+    var options: Array[Dictionary] = _draft.build_options(_owned_spells, _taken_upgrades, _taken_augments)
     if options.is_empty():
         # Everything is maxed out. Nothing to offer, so do not stop the run.
         return false
@@ -290,6 +301,8 @@ func _on_draft_option_chosen(option: Dictionary) -> void:
             _level_up_spell(str(option.get("id", "")))
         Draft.KIND_STAT:
             _apply_upgrade(str(option.get("id", "")))
+        Draft.KIND_AUGMENT:
+            _grant_augment(str(option.get("id", "")))
 
     # More than one level can be earned from a single orb pickup.
     if progression.pending_levels > 0 and _open_draft():
@@ -339,6 +352,14 @@ func _apply_upgrade(upgrade_id: String) -> void:
         player.refresh_max_health(amount)
 
 
+func _grant_augment(augment_id: String) -> void:
+    var augment: Dictionary = _draft.get_augment_definition(augment_id)
+    if augment.is_empty() or _taken_augments.has(augment_id):
+        return
+    stats.grant_augment(augment_id, augment.get("params", {}))
+    _taken_augments[augment_id] = true
+
+
 func _describe_build() -> String:
     if _owned_spells.is_empty():
         return ""
@@ -346,6 +367,8 @@ func _describe_build() -> String:
     for spell_id in _owned_spells:
         var definition: Dictionary = _draft.get_spell_definition(spell_id)
         parts.append("%s %d" % [str(definition.get("name", spell_id)), int(_owned_spells[spell_id])])
+    for augment_id in _taken_augments:
+        parts.append(str(_draft.get_augment_definition(augment_id).get("name", augment_id)))
     return " / ".join(parts)
 
 
@@ -373,6 +396,11 @@ func _spell_summary() -> Array:
             "name": spell.display_name,
             "level": spell.level,
             "max_level": spell.max_level,
+        })
+    for augment_id in _taken_augments:
+        summary.append({
+            "name": str(_draft.get_augment_definition(augment_id).get("name", augment_id)),
+            "augment": true,
         })
     return summary
 

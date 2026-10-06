@@ -9,6 +9,7 @@ extends RefCounted
 const KIND_NEW_SPELL := "new_spell"
 const KIND_SPELL_LEVEL := "spell_level"
 const KIND_STAT := "stat"
+const KIND_AUGMENT := "augment"
 
 var options_per_draft := 3
 
@@ -16,12 +17,14 @@ var _catalog := {}
 var _catalog_order: Array[String] = []
 var _upgrades := {}
 var _upgrade_order: Array[String] = []
+var _augments := {}
+var _augment_order: Array[String] = []
 var _max_spells := 5
 var _weights := {}
 var _random := RandomNumberGenerator.new()
 
 
-func configure(spell_config: Dictionary, progression_config: Dictionary, seed_value: int) -> void:
+func configure(spell_config: Dictionary, progression_config: Dictionary, seed_value: int, augment_config: Dictionary = {}) -> void:
     _max_spells = int(spell_config.get("max_spells", _max_spells))
     for entry in spell_config.get("spells", []):
         var spell_id := str(entry.get("id", ""))
@@ -36,7 +39,15 @@ func configure(spell_config: Dictionary, progression_config: Dictionary, seed_va
         KIND_NEW_SPELL: float(draft_config.get("new_spell_weight", 3.0)),
         KIND_SPELL_LEVEL: float(draft_config.get("spell_level_weight", 2.0)),
         KIND_STAT: float(draft_config.get("stat_upgrade_weight", 2.0)),
+        KIND_AUGMENT: float(draft_config.get("augment_weight", 3.0)),
     }
+
+    for entry in augment_config.get("augments", []):
+        var augment_id := str(entry.get("id", ""))
+        if augment_id.is_empty():
+            continue
+        _augments[augment_id] = entry
+        _augment_order.append(augment_id)
 
     for entry in progression_config.get("upgrades", []):
         var upgrade_id := str(entry.get("id", ""))
@@ -56,9 +67,24 @@ func get_upgrade_definition(upgrade_id: String) -> Dictionary:
     return _upgrades.get(upgrade_id, {})
 
 
+func get_augment_definition(augment_id: String) -> Dictionary:
+    return _augments.get(augment_id, {})
+
+
+## The elements the player's spells cover, as a set of element ids.
+func owned_elements(owned_spells: Dictionary) -> Dictionary:
+    var elements := {}
+    for spell_id in owned_spells:
+        var element := str(_catalog.get(spell_id, {}).get("element", ""))
+        if not element.is_empty():
+            elements[element] = true
+    return elements
+
+
 ## `owned_spells` maps spell id to its current level. `taken_upgrades` maps
-## upgrade id to how many times it has been chosen.
-func build_options(owned_spells: Dictionary, taken_upgrades: Dictionary) -> Array[Dictionary]:
+## upgrade id to how many times it has been chosen. `taken_augments` maps augment
+## id to anything; only its keys matter.
+func build_options(owned_spells: Dictionary, taken_upgrades: Dictionary, taken_augments: Dictionary = {}) -> Array[Dictionary]:
     var pool: Array[Dictionary] = []
 
     if owned_spells.size() < _max_spells:
@@ -107,7 +133,41 @@ func build_options(owned_spells: Dictionary, taken_upgrades: Dictionary) -> Arra
             "weight": _weights[KIND_STAT],
         })
 
+    var elements := owned_elements(owned_spells)
+    for augment_id in _augment_order:
+        if taken_augments.has(augment_id):
+            continue
+        var augment: Dictionary = _augments[augment_id]
+        var label := _requirement_label(augment.get("requires", {}), owned_spells, elements)
+        if label.is_empty():
+            continue
+        pool.append({
+            "kind": KIND_AUGMENT,
+            "id": augment_id,
+            "name": str(augment.get("name", augment_id)),
+            "description": str(augment.get("description", "")),
+            "detail": "Augment - %s" % label,
+            "weight": _weights[KIND_AUGMENT],
+        })
+
     return _draw_without_replacement(pool, options_per_draft)
+
+
+## Returns a short label for what unlocked an augment, or an empty string when
+## the player does not meet its requirement. Augments are only offered for what
+## the player already has, so every card on screen is something they can use.
+func _requirement_label(requires: Dictionary, owned_spells: Dictionary, elements: Dictionary) -> String:
+    if requires.has("spell"):
+        var spell_id := str(requires["spell"])
+        if owned_spells.has(spell_id):
+            return str(_catalog.get(spell_id, {}).get("name", spell_id))
+        return ""
+    if requires.has("element"):
+        var element := str(requires["element"])
+        return element.capitalize() if elements.has(element) else ""
+    if requires.has("distinct_elements"):
+        return "Reactions" if elements.size() >= int(requires["distinct_elements"]) else ""
+    return ""
 
 
 func _draw_without_replacement(pool: Array[Dictionary], count: int) -> Array[Dictionary]:

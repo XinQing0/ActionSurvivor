@@ -16,6 +16,7 @@ const Projectile := preload("res://src/gameplay/spells/projectile.gd")
 var spell_id := "unnamed"
 var display_name := "Unnamed"
 var description := ""
+var element := ""
 var level := 1
 var max_level := 5
 var enabled := true
@@ -26,6 +27,7 @@ var stats: RefCounted
 
 var _base := {}
 var _per_level := {}
+var _status := {}
 var _cooldown := 0.0
 var _random := RandomNumberGenerator.new()
 
@@ -34,6 +36,8 @@ func configure(definition: Dictionary, new_caster: Node3D, new_projectile_parent
     spell_id = str(definition.get("id", spell_id))
     display_name = str(definition.get("name", spell_id))
     description = str(definition.get("description", ""))
+    element = str(definition.get("element", ""))
+    _status = definition.get("status", {})
     max_level = int(definition.get("max_level", max_level))
     _base = definition.get("base", {})
     _per_level = definition.get("per_level", {})
@@ -140,6 +144,32 @@ func _cast() -> void:
 
 # --- Shared helpers -------------------------------------------------------
 
+## Every hit a spell lands goes through here, so the status that makes spells
+## react with each other is applied in one place. A spell that damaged enemies
+## directly would silently opt out of reactions.
+func deal_hit(enemy: Node, damage: float) -> void:
+    if not is_instance_valid(enemy) or not enemy.has_method("take_damage"):
+        return
+    enemy.take_damage(damage)
+    # A lethal hit frees the enemy, and a dead enemy has nothing to apply to.
+    if _status.is_empty() or not enemy.has_method("apply_status") or float(enemy.get("health")) <= 0.0:
+        return
+    var potency := float(_status.get("potency", 1.0))
+    if bool(_status.get("scales_with_damage", false)):
+        potency *= _multiplier("damage_multiplier")
+    enemy.apply_status(str(_status.get("id", "")), float(_status.get("duration", 2.0)), potency)
+
+
+func has_augment(augment_id: String) -> bool:
+    return stats != null and stats.has_augment(augment_id)
+
+
+func augment_param(augment_id: String, key: String, fallback: float) -> float:
+    if stats == null:
+        return fallback
+    return stats.augment_param(augment_id, key, fallback)
+
+
 func spawn_projectile(origin: Vector3, direction: Vector3, overrides: Dictionary = {}) -> void:
     var projectile := Projectile.new()
     var settings := {
@@ -152,6 +182,7 @@ func spawn_projectile(origin: Vector3, direction: Vector3, overrides: Dictionary
     }
     settings.merge(overrides, true)
     projectile.configure(settings, origin, direction)
+    projectile.source_spell = self
     projectile_parent.add_child(projectile)
 
 

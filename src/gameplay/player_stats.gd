@@ -5,6 +5,10 @@ extends RefCounted
 ## Spells never store their own final numbers. They ask for a base value and
 ## multiply it through here, so a stat upgrade taken at minute two changes every
 ## spell the player already owns without any of them knowing the upgrade exists.
+##
+## It also records which augments the player has taken. An augment changes what a
+## spell does rather than how hard it hits, so spells and the reaction system ask
+## `has_augment` instead of reading a number.
 
 var damage_multiplier := 1.0
 var cooldown_multiplier := 1.0
@@ -16,6 +20,9 @@ var max_health_bonus := 0.0
 var health_regen_per_second := 0.0
 var pickup_radius_bonus := 0.0
 var xp_multiplier := 1.0
+
+## Augment id to its parameter dictionary.
+var augments := {}
 
 const FIELDS := [
     "damage_multiplier",
@@ -48,6 +55,19 @@ func apply_modifier(field: String, amount: float) -> bool:
         updated = maxf(updated, MINIMUM_MULTIPLIER)
     set(field, updated)
     return true
+
+
+func grant_augment(augment_id: String, params: Dictionary) -> void:
+    augments[augment_id] = params
+
+
+func has_augment(augment_id: String) -> bool:
+    return augments.has(augment_id)
+
+
+func augment_param(augment_id: String, key: String, fallback: float) -> float:
+    var params: Dictionary = augments.get(augment_id, {})
+    return float(params.get(key, fallback))
 
 
 func describe() -> Dictionary:

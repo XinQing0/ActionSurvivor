@@ -1,0 +1,53 @@
+{
+  "augments": [
+    {
+      "id": "wildfire",
+      "name": "Wildfire",
+      "description": "Burning enemies ignite everything within 3m when they die.",
+      "requires": { "element": "fire" },
+      "params": { "radius": 3.0, "duration": 3.0 }
+    },
+    {
+      "id": "ricochet",
+      "name": "Ricochet",
+      "description": "Arc Bolts rebound to another enemy twice, losing 20% damage each time.",
+      "requires": { "spell": "arc_bolt" },
+      "params": { "bounces": 2, "range": 6.0, "retained": 0.8 }
+    },
+    {
+      "id": "twin_pulse",
+      "name": "Twin Pulse",
+      "description": "Cinder Nova pulses a second time shortly after, at 60% damage.",
+      "requires": { "spell": "cinder_nova" },
+      "params": { "delay": 0.35, "scale": 0.6 }
+    },
+    {
+      "id": "backdraft",
+      "name": "Backdraft",
+      "description": "Ember Spray also fires a smaller cone behind you.",
+      "requires": { "spell": "ember_spray" },
+      "params": { "rear_fraction": 0.5, "rear_damage": 0.75 }
+    },
+    {
+      "id": "conductive_web",
+      "name": "Conductive Web",
+      "description": "Static Chain leaps 2 more times and loses far less damage per leap.",
+      "requires": { "spell": "static_chain" },
+      "params": { "extra_jumps": 2, "falloff": 0.95 }
+    },
+    {
+      "id": "brittle_cold",
+      "name": "Brittle Cold",
+      "description": "Chilled enemies take 30% more damage from everything.",
+      "requires": { "spell": "warding_orbs" },
+      "params": { "bonus": 0.3 }
+    },
+    {
+      "id": "catalyst",
+      "name": "Catalyst",
+      "description": "Reactions hit 50% harder and reach 25% further.",
+      "requires": { "distinct_elements": 2 },
+      "params": { "damage": 0.5, "radius": 0.25 }
+    }
+  ]
+}

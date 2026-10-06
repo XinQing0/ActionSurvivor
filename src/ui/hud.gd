@@ -44,12 +44,18 @@ func update_health(current: float, maximum: float) -> void:
     _health_label.text = "%d / %d" % [roundi(current), roundi(maximum)]
 
 
-## `spells` is an array of {name, level, max_level}.
+## `spells` is an array of {name, level, max_level}. An entry with
+## `augment: true` is listed by name only, below the spells it modifies.
 func update_spells(spells: Array) -> void:
     for child in _spell_list.get_children():
         _spell_list.remove_child(child)
         child.queue_free()
     for entry in spells:
+        if bool(entry.get("augment", false)):
+            var tag := UiTheme.make_label(str(entry.get("name", "?")), 14, Color(0.82, 0.62, 1.0))
+            tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+            _spell_list.add_child(tag)
+            continue
         var level := int(entry.get("level", 1))
         var max_level := int(entry.get("max_level", 5))
         var pips := "*".repeat(level) + ".".repeat(maxi(max_level - level, 0))

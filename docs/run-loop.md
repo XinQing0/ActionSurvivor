@@ -16,8 +16,8 @@ The title screen offers a 90-second quick run and a 10-minute full run. The
 choice survives a restart, so `Run it again` replays the same length.
 
 Every level-up pauses the game and offers three cards: a new spell, a level for
-a spell you already have, or a stat upgrade. Pick with the mouse or with 1, 2
-and 3.
+a spell you already have, a stat upgrade, or an augment. Pick with the mouse or
+with 1, 2 and 3.
 
 ## Systems
 
@@ -29,6 +29,7 @@ and 3.
 | Global run modifiers | `src/gameplay/player_stats.gd` |
 | Experience and levels | `src/gameplay/progression.gd`, `xp_orb.gd` |
 | Level-up offers | `src/gameplay/draft.gd` |
+| Statuses and reactions | `src/gameplay/reactions.gd`, `enemy.gd` |
 | Spells | `src/gameplay/spells/` |
 | Interface | `src/ui/` |
 
@@ -50,6 +51,53 @@ extending `src/gameplay/spells/spell.gd`. The base class owns levelling, stat
 multipliers, cooldown and target selection, so a new spell only implements what
 happens when it fires.
 
+### Elements, statuses and reactions
+
+Every spell has an element and applies a status on each hit it lands:
+
+| Spell | Element | Status |
+| --- | --- | --- |
+| Cinder Nova, Ember Spray | Fire | Burn: damage over time, scales with your damage multiplier |
+| Arc Bolt, Static Chain | Lightning | Shock: no effect alone |
+| Warding Orbs | Frost | Chill: slows the enemy by 35% |
+
+When one enemy carries two different statuses they react: both are consumed and
+something happens.
+
+| Reaction | Needs | Effect |
+| --- | --- | --- |
+| Overload | Burn + Shock | Area blast around the enemy |
+| Shatter | Chill + Shock | Heavy hit on that enemy alone |
+| Steam | Burn + Chill | Small blast that chills everything near it |
+
+This is what makes the *pairing* of spells a decision: two fire spells never
+react with each other, a fire spell and a lightning spell do. An enemy cannot
+react again for a short lockout, and reactions that set up further reactions are
+depth-limited (`max_chain_depth`). Definitions live in `config/reactions.json`.
+
+All spell hits go through `Spell.deal_hit`, so a new spell that damaged enemies
+directly would silently opt out of reactions. Enemies glow in the colour of the
+status they carry, and a reaction prints its name above the enemy.
+
+### Augments
+
+An augment changes what a spell *does* rather than how hard it hits. Each is
+taken once and is only offered when the player already owns what it needs: a
+specific spell, any spell of an element, or spells of two different elements.
+
+| Augment | Needs | Effect |
+| --- | --- | --- |
+| Ricochet | Arc Bolt | Bolts rebound to another enemy twice |
+| Twin Pulse | Cinder Nova | A second, weaker pulse follows the first |
+| Backdraft | Ember Spray | A smaller cone also fires behind you |
+| Conductive Web | Static Chain | Two more leaps, far less falloff |
+| Brittle Cold | Warding Orbs | Chilled enemies take 30% more damage from everything |
+| Wildfire | Any fire spell | Burning enemies ignite their neighbours when they die |
+| Catalyst | Two elements | Reactions hit 50% harder and reach 25% further |
+
+Definitions and parameters live in `config/augments.json`. Augments are recorded
+on the player stats object, and spells read them with `has_augment`.
+
 ### Stats
 
 Spells never store final numbers. They read a base value and multiply it
@@ -64,6 +112,8 @@ spell already owned without any of them knowing the upgrade exists.
 | `config/waves_10min.json` | The 10-minute run |
 | `config/spells.json` | Spell catalog: base stats and per-level growth |
 | `config/progression.json` | Experience curve, orb behaviour, draft weights, stat upgrades |
+| `config/reactions.json` | Which status pairs react, and what each reaction does |
+| `config/augments.json` | The augment pool, its requirements and parameters |
 | `config/player_loadout.json` | Starting player stats and starting spells |
 
 Each wave begins at `start_time_seconds`; the director uses the most recent
@@ -132,11 +182,14 @@ with 176 and a loss - and the tests are worthless as regression checks.
 godot --headless --fixed-fps 60 --path . --script res://tests/run_headless_smoke.gd
 godot --headless --fixed-fps 60 --path . --script res://tests/run_headless_playthrough.gd
 godot --headless --fixed-fps 60 --path . --script res://tests/run_headless_playthrough.gd -- full
+godot --headless --fixed-fps 60 --path . --script res://tests/run_headless_build_test.gd
 ```
 
 The smoke test boots the scene and checks that every system fires. The
 playthrough test drives the pawn with a kiting policy and checks that a whole
-run can be survived. See [the tests](../tests/README.md).
+run can be survived. The build test sets up controlled situations (an enemy
+carrying two statuses, a bolt meeting two enemies, a draft for a given
+inventory) and asserts exactly what follows. See [the tests](../tests/README.md).
 
 ## Known gaps
 
@@ -145,5 +198,11 @@ run can be survived. See [the tests](../tests/README.md).
 - No audio.
 - No pause during a run; Escape abandons it.
 - No meta progression between runs, by design for now.
-- Spells do not interact with each other. Combinations are additive, which is
-  the main thing separating this from its reference games.
+- Balance of augments is untested against people. In the automated full run the
+  bot clears about 755 enemies with reactions alone and about 1470 once it also
+  picks augments (before milestone 3 it cleared 624), so augments are the
+  dominant source of power and the wave curve has not been retuned for them.
+- Augments are one-off picks with no stacking, and none costs the player
+  anything. There are no trade-off choices yet.
+- Reaction and status visuals are placeholder glow and floating text, and have
+  not been looked at in a running build.

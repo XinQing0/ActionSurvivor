@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted. Milestones 1 and 2 are implemented; see
+Accepted. Milestones 1, 2 and the first pass of 3 are implemented; see
 [the run loop](run-loop.md), which replaces the earlier 2D top-down
 prototype. The [Godot engine decision](engine-decision-godot.md) remains
 valid.
@@ -119,8 +119,10 @@ Add:
    and shape, experience orbs, a level curve, and the level-up choice screen.
    Stat upgrades came along with it rather than waiting for milestone 3,
    because without them a build had no way to answer attrition.
-3. **Build depth.** Modifiers and spell interactions; the first pass at what
-   makes two runs feel different.
+3. **Build depth.** First pass done: elements and statuses, three reactions
+   between them, and seven augments that change spell behaviour. Still open:
+   trade-off choices, balancing augments against the wave curve, and whether
+   augments should stack or evolve.
 4. **Art direction pass.** Lock palette, lighting, and effect budget against the
    legibility pillar.
 5. **Multiplayer.** Only after the single-player loop is worth repeating.

@@ -150,6 +150,101 @@ foreach ($spell in $spellConfig.spells) {
 }
 Write-Output "Validated $spellPath"
 
+$validElements = @('fire', 'lightning', 'frost')
+$validStatuses = @('burn', 'shock', 'chill')
+$spellElements = @{}
+foreach ($spell in $spellConfig.spells) {
+    if (-not $spell.element -or $validElements -notcontains $spell.element) {
+        throw "$spellPath spell '$($spell.id)' needs an element from: $($validElements -join ', ')."
+    }
+    $spellElements[$spell.id] = $spell.element
+    if (-not $spell.status -or $validStatuses -notcontains $spell.status.id) {
+        throw "$spellPath spell '$($spell.id)' needs a status from: $($validStatuses -join ', ')."
+    }
+    if ($spell.status.duration -le 0 -or $spell.status.potency -le 0) {
+        throw "$spellPath spell '$($spell.id)' has a non-positive status duration or potency."
+    }
+}
+
+# --- Reactions ------------------------------------------------------------
+
+$reactionPath = Join-Path $repositoryRoot 'config/reactions.json'
+$reactionConfig = Get-Content -Raw -Encoding UTF8 -LiteralPath $reactionPath | ConvertFrom-Json
+if ($reactionConfig.max_chain_depth -lt 1 -or $reactionConfig.lockout_seconds -le 0) {
+    throw "$reactionPath needs a positive max_chain_depth and lockout_seconds."
+}
+$reactionIds = @{}
+$reactionPairs = @{}
+foreach ($reaction in $reactionConfig.reactions) {
+    if ($reactionIds.ContainsKey($reaction.id)) {
+        throw "$reactionPath defines the reaction id '$($reaction.id)' twice."
+    }
+    $reactionIds[$reaction.id] = $true
+    if ($reaction.requires.Count -lt 2) {
+        throw "$reactionPath reaction '$($reaction.id)' needs at least two statuses; one would fire on every hit."
+    }
+    foreach ($status in $reaction.requires) {
+        if ($validStatuses -notcontains $status) {
+            throw "$reactionPath reaction '$($reaction.id)' requires unknown status '$status'."
+        }
+    }
+    $pairKey = ($reaction.requires | Sort-Object) -join '+'
+    if ($reactionPairs.ContainsKey($pairKey)) {
+        throw "$reactionPath reactions '$($reactionPairs[$pairKey])' and '$($reaction.id)' both consume $pairKey."
+    }
+    $reactionPairs[$pairKey] = $reaction.id
+    if ($reaction.damage -le 0 -or $reaction.radius -lt 0) {
+        throw "$reactionPath reaction '$($reaction.id)' has a non-positive damage or negative radius."
+    }
+    if ($reaction.apply -and $validStatuses -notcontains $reaction.apply.id) {
+        throw "$reactionPath reaction '$($reaction.id)' applies unknown status '$($reaction.apply.id)'."
+    }
+}
+# Statuses a spell can apply should each take part in at least one reaction, or
+# the spell contributes nothing to a build beyond its own damage.
+foreach ($status in $validStatuses) {
+    $used = $false
+    foreach ($reaction in $reactionConfig.reactions) {
+        if ($reaction.requires -contains $status) { $used = $true }
+    }
+    if (-not $used) {
+        throw "$reactionPath has no reaction that uses the '$status' status."
+    }
+}
+Write-Output "Validated $reactionPath"
+
+# --- Augments -------------------------------------------------------------
+
+$augmentPath = Join-Path $repositoryRoot 'config/augments.json'
+$augmentConfig = Get-Content -Raw -Encoding UTF8 -LiteralPath $augmentPath | ConvertFrom-Json
+$augmentIds = @{}
+foreach ($augment in $augmentConfig.augments) {
+    if ($augmentIds.ContainsKey($augment.id)) {
+        throw "$augmentPath defines the augment id '$($augment.id)' twice."
+    }
+    $augmentIds[$augment.id] = $true
+    if (-not $augment.name -or -not $augment.description) {
+        throw "$augmentPath augment '$($augment.id)' needs a name and a description."
+    }
+    $requirementCount = 0
+    foreach ($key in @('spell', 'element', 'distinct_elements')) {
+        if ($augment.requires.PSObject.Properties[$key]) { $requirementCount++ }
+    }
+    if ($requirementCount -ne 1) {
+        throw "$augmentPath augment '$($augment.id)' must have exactly one requirement (spell, element or distinct_elements)."
+    }
+    if ($augment.requires.spell -and -not $spellIds.ContainsKey($augment.requires.spell)) {
+        throw "$augmentPath augment '$($augment.id)' requires unknown spell '$($augment.requires.spell)'."
+    }
+    if ($augment.requires.element -and $validElements -notcontains $augment.requires.element) {
+        throw "$augmentPath augment '$($augment.id)' requires unknown element '$($augment.requires.element)'."
+    }
+    if ($augment.requires.element -and ($spellElements.Values -notcontains $augment.requires.element)) {
+        throw "$augmentPath augment '$($augment.id)' requires element '$($augment.requires.element)', which no spell has."
+    }
+}
+Write-Output "Validated $augmentPath"
+
 # --- Progression ----------------------------------------------------------
 
 $progressionPath = Join-Path $repositoryRoot 'config/progression.json'
@@ -233,6 +328,11 @@ $requiredFiles = @(
     'src/gameplay/player_stats.gd'
     'src/gameplay/progression.gd'
     'src/gameplay/draft.gd'
+    'src/gameplay/reactions.gd'
+    'src/gameplay/reaction_popup.gd'
+    'config/reactions.json'
+    'config/augments.json'
+    'tests/run_headless_build_test.gd'
     'src/gameplay/xp_orb.gd'
     'src/gameplay/enemy.gd'
     'src/gameplay/wave_director.gd'
